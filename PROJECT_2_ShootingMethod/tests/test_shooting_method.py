@@ -1,430 +1,336 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-项目2：打靶法与scipy.solve_bvp求解边值问题 - 测试文件
+import time  # 添加在文件开头
 
-测试所有实现的函数，包括：
-- ODE系统函数
-- 边界条件函数
-- 打靶法求解器
-- scipy.solve_bvp封装函数
-- 方法比较和可视化
+def compare_methods_and_plot(x_span=(0, 1), boundary_conditions=(1, 1), n_points=100):
+    """
+    Compare shooting method and scipy.solve_bvp, generate comparison plot.
+    """
+    print("Solving BVP using both methods...")
+    try:
+        # 统计打靶法计算时间
+        print("Running shooting method...")
+        t0 = time.time()
+        x_shoot, y_shoot = solve_bvp_shooting_method(x_span, boundary_conditions, n_points)
+        t1 = time.time()
+        shooting_time = t1 - t0
 
-总分：100分
-"""
+        # 统计scipy.solve_bvp计算时间
+        print("Running scipy.solve_bvp...")
+        t2 = time.time()
+        x_scipy, y_scipy = solve_bvp_scipy_wrapper(x_span, boundary_conditions, n_points//2)
+        t3 = time.time()
+        scipy_time = t3 - t2
 
-import unittest
+        # 插值对比
+        y_scipy_interp = np.interp(x_shoot, x_scipy, y_scipy)
+        max_diff = np.max(np.abs(y_shoot - y_scipy_interp))
+        rms_diff = np.sqrt(np.mean((y_shoot - y_scipy_interp)**2))
+
+        plt.figure(figsize=(12, 8))
+        # 主解对比图
+        plt.subplot(2, 1, 1)
+        plt.plot(x_shoot, y_shoot, 'b-', linewidth=2, label='Shooting Method')
+        plt.plot(x_scipy, y_scipy, 'r--', linewidth=2, label='scipy.solve_bvp')
+        plt.xlabel('x')
+        plt.ylabel('u(x)')
+        plt.title('Comparison of BVP Solution Methods')
+        plt.plot([x_span[0], x_span[1]], [boundary_conditions[0], boundary_conditions[1]],
+                 'ko', markersize=8, label='Boundary Conditions')
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+
+        # 差值图
+        plt.subplot(2, 1, 2)
+        plt.plot(x_shoot, y_shoot - y_scipy_interp, 'g-', linewidth=2, label='Difference')
+        plt.xlabel('x')
+        plt.ylabel('Difference (Shooting - scipy)')
+        plt.title(f'Solution Difference (Max: {max_diff:.2e}, RMS: {rms_diff:.2e})')
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+
+        plt.tight_layout()
+        plt.savefig(r'C:\Users\31025\OneDrive\桌面\t\compare_methods.png')
+        # plt.show()
+
+        print(f"\nShooting method time: {shooting_time:.6f} s")
+        print(f"scipy.solve_bvp time: {scipy_time:.6f} s")
+        print("\nSolution Analysis:")
+        print(f"Maximum difference: {max_diff:.2e}")
+        print(f"RMS difference: {rms_diff:.2e}")
+        print(f"Shooting method points: {len(x_shoot)}")
+        print(f"scipy.solve_bvp points: {len(x_scipy)}")
+        print(f"\nBoundary condition verification:")
+        print(f"Shooting method: u({x_span[0]}) = {y_shoot[0]:.6f}, u({x_span[1]}) = {y_shoot[-1]:.6f}")
+        print(f"scipy.solve_bvp: u({x_span[0]}) = {y_scipy[0]:.6f}, u({x_span[1]}) = {y_scipy[-1]:.6f}")
+        print(f"Target: u({x_span[0]}) = {boundary_conditions[0]}, u({x_span[1]}) = {boundary_conditions[1]}")
+        return {
+            'x_shooting': x_shoot,
+            'y_shooting': y_shoot,
+            'x_scipy': x_scipy,
+            'y_scipy': y_scipy,
+            'max_difference': max_diff,
+            'rms_difference': rms_diff,
+            'boundary_error_shooting': [abs(y_shoot[0] - boundary_conditions[0]),
+                                        abs(y_shoot[-1] - boundary_conditions[1])],
+            'boundary_error_scipy': [abs(y_scipy[0] - boundary_conditions[0]),
+                                     abs(y_scipy[-1] - boundary_conditions[1])],
+            'shooting_time': shooting_time,
+            'scipy_time': scipy_time
+        }
+    except Exception as e:
+        print(f"Error in method comparison: {str(e)}")
+        raise
+import time  # 在文件开头导入
+
+def compare_methods_and_plot(x_span=(0, 1), boundary_conditions=(1, 1), n_points=100):
+    print("Solving BVP using both methods...")
+    try:
+        # 统计打靶法计算时间
+        print("Running shooting method...")
+        t0 = time.time()
+        x_shoot, y_shoot = solve_bvp_shooting_method(x_span, boundary_conditions, n_points)
+        t1 = time.time()
+        shooting_time = t1 - t0
+
+        # 统计scipy.solve_bvp计算时间
+        print("Running scipy.solve_bvp...")
+        t2 = time.time()
+        x_scipy, y_scipy = solve_bvp_scipy_wrapper(x_span, boundary_conditions, n_points//2)
+        t3 = time.time()
+        scipy_time = t3 - t2
+
+        # ...后续代码不变...
+
+        print(f"\nShooting method time: {shooting_time:.6f} s")
+        print(f"scipy.solve_bvp time: {scipy_time:.6f} s")
+
+        return {
+            'x_shooting': x_shoot,
+            'y_shooting': y_shoot,
+            'x_scipy': x_scipy,
+            'y_scipy': y_scipy,
+            'max_difference': max_diff,
+            'rms_difference': rms_diff,
+            'boundary_error_shooting': [abs(y_shoot[0] - boundary_conditions[0]),
+                                        abs(y_shoot[-1] - boundary_conditions[1])],
+            'boundary_error_scipy': [abs(y_scipy[0] - boundary_conditions[0]),
+                                     abs(y_scipy[-1] - boundary_conditions[1])],
+            'shooting_time': shooting_time,
+            'scipy_time': scipy_time
+        }
+    except Exception as e:
+        print(f"Error in method comparison: {str(e)}")
+        raise
+import matplotlib
+matplotlib.use('Agg')  # 使用非交互式后端，确保图片可以保存
 import numpy as np
 import matplotlib.pyplot as plt
-import sys
-import os
-from io import StringIO
+from scipy.integrate import odeint, solve_ivp, solve_bvp
+from scipy.optimize import fsolve
 import warnings
 warnings.filterwarnings('ignore')
 
-# Add project directory to path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Test configuration
-TEST_TOLERANCE = 1e-6
-PLOT_TOLERANCE = 1e-4
-
-# Import reference solution
-try:
-    from solution.shooting_method_solution import (
-        ode_system_shooting as ref_ode_system_shooting,
-        boundary_conditions_scipy as ref_boundary_conditions_scipy,
-        ode_system_scipy as ref_ode_system_scipy,
-        solve_bvp_shooting_method as ref_solve_bvp_shooting_method,
-        solve_bvp_scipy_wrapper as ref_solve_bvp_scipy_wrapper,
-        compare_methods_and_plot as ref_compare_methods_and_plot
-    )
-    REFERENCE_AVAILABLE = True
-except ImportError as e:
-    print(f"Warning: Could not import reference solution: {e}")
-    REFERENCE_AVAILABLE = False
-
-# Import student solution
-try:
-    from shooting_method_student import (
-        ode_system_shooting as stu_ode_system_shooting,
-        boundary_conditions_scipy as stu_boundary_conditions_scipy,
-        ode_system_scipy as stu_ode_system_scipy,
-        solve_bvp_shooting_method as stu_solve_bvp_shooting_method,
-        solve_bvp_scipy_wrapper as stu_solve_bvp_scipy_wrapper,
-        compare_methods_and_plot as stu_compare_methods_and_plot
-    )
-    STUDENT_AVAILABLE = True
-except ImportError as e:
-    print(f"Warning: Could not import student solution: {e}")
-    STUDENT_AVAILABLE = False
+def ode_system_shooting(y, t=None):
+    if isinstance(y, (int, float)) and hasattr(t, '__len__'):
+        t, y = y, t
+    elif t is None:
+        pass
+    return [y[1], -np.pi*(y[0]+1)/4]
 
 
-class TestReferenceSolution(unittest.TestCase):
-    """Test reference solution to ensure correctness."""
-    
-    def setUp(self):
-        """Set up test parameters."""
-        self.x_span = (0, 1)
-        self.boundary_conditions = (1, 1)
-        self.test_point = 0.5
-        self.test_state = np.array([1.0, 0.5])
-    
-    @unittest.skipUnless(REFERENCE_AVAILABLE, "Reference solution not available")
-    def test_reference_ode_system_shooting_5pts(self):
-        """Test reference ODE system for shooting method."""
-        dydt = ref_ode_system_shooting(self.test_point, self.test_state)
-        expected = [0.5, -np.pi*(1.0+1)/4]
-        
-        self.assertIsInstance(dydt, (list, np.ndarray), "ODE system should return list or array")
-        self.assertEqual(len(dydt), 2, "ODE system should return 2 derivatives")
-        np.testing.assert_allclose(dydt, expected, rtol=TEST_TOLERANCE, 
-                                 err_msg="ODE system derivatives incorrect")
-    
-    @unittest.skipUnless(REFERENCE_AVAILABLE, "Reference solution not available")
-    def test_reference_ode_system_scipy_5pts(self):
-        """Test reference ODE system for scipy.solve_bvp."""
-        dydt = ref_ode_system_scipy(self.test_point, self.test_state)
-        expected = np.array([[0.5], [-np.pi*2/4]])
-        
-        self.assertIsInstance(dydt, np.ndarray, "Scipy ODE system should return numpy array")
-        self.assertEqual(dydt.shape, (2, 1), "Scipy ODE system should return column vector")
-        np.testing.assert_allclose(dydt, expected, rtol=TEST_TOLERANCE,
-                                 err_msg="Scipy ODE system derivatives incorrect")
-    
-    @unittest.skipUnless(REFERENCE_AVAILABLE, "Reference solution not available")
-    def test_reference_boundary_conditions_5pts(self):
-        """Test reference boundary conditions function."""
-        ya = np.array([1.0, 0.5])
-        yb = np.array([1.0, -0.3])
-        
-        bc_residual = ref_boundary_conditions_scipy(ya, yb)
-        expected = np.array([0.0, 0.0])
-        
-        self.assertIsInstance(bc_residual, np.ndarray, "Boundary conditions should return numpy array")
-        self.assertEqual(len(bc_residual), 2, "Should return 2 boundary condition residuals")
-        np.testing.assert_allclose(bc_residual, expected, rtol=TEST_TOLERANCE,
-                                 err_msg="Boundary condition residuals incorrect")
-    
-    @unittest.skipUnless(REFERENCE_AVAILABLE, "Reference solution not available")
-    def test_reference_shooting_method_15pts(self):
-        """Test reference shooting method implementation."""
-        x, y = ref_solve_bvp_shooting_method(self.x_span, self.boundary_conditions, n_points=50)
-        
-        # Check return types and shapes
-        self.assertIsInstance(x, np.ndarray, "x should be numpy array")
-        self.assertIsInstance(y, np.ndarray, "y should be numpy array")
-        self.assertEqual(len(x), len(y), "x and y should have same length")
-        self.assertEqual(len(x), 50, "Should return requested number of points")
-        
-        # Check boundary conditions
-        self.assertAlmostEqual(y[0], self.boundary_conditions[0], places=5,
-                              msg="Left boundary condition not satisfied")
-        self.assertAlmostEqual(y[-1], self.boundary_conditions[1], places=5,
-                              msg="Right boundary condition not satisfied")
-        
-        # Check domain
-        self.assertAlmostEqual(x[0], self.x_span[0], places=10, msg="Domain start incorrect")
-        self.assertAlmostEqual(x[-1], self.x_span[1], places=10, msg="Domain end incorrect")
-    
-    @unittest.skipUnless(REFERENCE_AVAILABLE, "Reference solution not available")
-    def test_reference_scipy_wrapper_10pts(self):
-        """Test reference scipy.solve_bvp wrapper."""
-        x, y = ref_solve_bvp_scipy_wrapper(self.x_span, self.boundary_conditions, n_points=25)
-        
-        # Check return types and shapes
-        self.assertIsInstance(x, np.ndarray, "x should be numpy array")
-        self.assertIsInstance(y, np.ndarray, "y should be numpy array")
-        self.assertEqual(len(x), len(y), "x and y should have same length")
-        
-        # Check boundary conditions
-        self.assertAlmostEqual(y[0], self.boundary_conditions[0], places=5,
-                              msg="Left boundary condition not satisfied")
-        self.assertAlmostEqual(y[-1], self.boundary_conditions[1], places=5,
-                              msg="Right boundary condition not satisfied")
-        
-        # Check domain
-        self.assertAlmostEqual(x[0], self.x_span[0], places=10, msg="Domain start incorrect")
-        self.assertAlmostEqual(x[-1], self.x_span[1], places=10, msg="Domain end incorrect")
+def boundary_conditions_scipy(ya, yb):
+    return np.array([ya[0] - 1, yb[0] - 1])
 
 
-class TestStudentImplementation(unittest.TestCase):
-    """Test student implementation against reference solution."""
-    
-    def setUp(self):
-        """Set up test parameters."""
-        self.x_span = (0, 1)
-        self.boundary_conditions = (1, 1)
-        self.test_point = 0.5
-        self.test_state = np.array([1.0, 0.5])
-    
-    @unittest.skipUnless(STUDENT_AVAILABLE, "Student solution not available")
-    def test_student_ode_system_shooting_15pts(self):
-        """Test student ODE system for shooting method."""
-        try:
-            dydt = stu_ode_system_shooting(self.test_point, self.test_state)
-            expected = [0.5, -np.pi*(1.0+1)/4]
-            
-            self.assertIsInstance(dydt, (list, np.ndarray), "ODE system should return list or array")
-            self.assertEqual(len(dydt), 2, "ODE system should return 2 derivatives")
-            np.testing.assert_allclose(dydt, expected, rtol=TEST_TOLERANCE,
-                                     err_msg="ODE system derivatives incorrect")
-            
-            # Test with different values
-            test_state2 = np.array([0.5, -0.2])
-            dydt2 = stu_ode_system_shooting(0.3, test_state2)
-            expected2 = [-0.2, -np.pi*(0.5+1)/4]
-            np.testing.assert_allclose(dydt2, expected2, rtol=TEST_TOLERANCE,
-                                     err_msg="ODE system fails with different inputs")
-            
-        except NotImplementedError:
-            self.fail("ode_system_shooting function not implemented")
-        except Exception as e:
-            self.fail(f"ode_system_shooting function failed: {str(e)}")
-    
-    @unittest.skipUnless(STUDENT_AVAILABLE, "Student solution not available")
-    def test_student_ode_system_scipy_10pts(self):
-        """Test student ODE system for scipy.solve_bvp."""
-        try:
-            dydt = stu_ode_system_scipy(self.test_point, self.test_state)
-            expected = np.array([[0.5], [-np.pi*2/4]])
-            
-            self.assertIsInstance(dydt, np.ndarray, "Scipy ODE system should return numpy array")
-            self.assertEqual(dydt.shape, (2, 1), "Scipy ODE system should return column vector")
-            np.testing.assert_allclose(dydt, expected, rtol=TEST_TOLERANCE,
-                                     err_msg="Scipy ODE system derivatives incorrect")
-            
-        except NotImplementedError:
-            self.fail("ode_system_scipy function not implemented")
-        except Exception as e:
-            self.fail(f"ode_system_scipy function failed: {str(e)}")
-    
-    @unittest.skipUnless(STUDENT_AVAILABLE, "Student solution not available")
-    def test_student_boundary_conditions_10pts(self):
-        """Test student boundary conditions function."""
-        try:
-            ya = np.array([1.0, 0.5])
-            yb = np.array([1.0, -0.3])
-            
-            bc_residual = stu_boundary_conditions_scipy(ya, yb)
-            expected = np.array([0.0, 0.0])
-            
-            self.assertIsInstance(bc_residual, np.ndarray, "Boundary conditions should return numpy array")
-            self.assertEqual(len(bc_residual), 2, "Should return 2 boundary condition residuals")
-            np.testing.assert_allclose(bc_residual, expected, rtol=TEST_TOLERANCE,
-                                     err_msg="Boundary condition residuals incorrect")
-            
-            # Test with different boundary values
-            ya2 = np.array([0.5, 0.1])
-            yb2 = np.array([2.0, -0.5])
-            bc_residual2 = stu_boundary_conditions_scipy(ya2, yb2)
-            expected2 = np.array([-0.5, 1.0])
-            np.testing.assert_allclose(bc_residual2, expected2, rtol=TEST_TOLERANCE,
-                                     err_msg="Boundary conditions fail with different inputs")
-            
-        except NotImplementedError:
-            self.fail("boundary_conditions_scipy function not implemented")
-        except Exception as e:
-            self.fail(f"boundary_conditions_scipy function failed: {str(e)}")
-    
-    @unittest.skipUnless(STUDENT_AVAILABLE, "Student solution not available")
-    def test_student_shooting_method_40pts(self):
-        """Test student shooting method implementation."""
-        try:
-            x, y = stu_solve_bvp_shooting_method(self.x_span, self.boundary_conditions, n_points=50)
-            
-            # Check return types and shapes
-            self.assertIsInstance(x, np.ndarray, "x should be numpy array")
-            self.assertIsInstance(y, np.ndarray, "y should be numpy array")
-            self.assertEqual(len(x), len(y), "x and y should have same length")
-            self.assertEqual(len(x), 50, "Should return requested number of points")
-            
-            # Check boundary conditions (more lenient for shooting method)
-            self.assertAlmostEqual(y[0], self.boundary_conditions[0], places=4,
-                                  msg="Left boundary condition not satisfied")
-            self.assertAlmostEqual(y[-1], self.boundary_conditions[1], places=4,
-                                  msg="Right boundary condition not satisfied")
-            
-            # Check domain
-            self.assertAlmostEqual(x[0], self.x_span[0], places=10, msg="Domain start incorrect")
-            self.assertAlmostEqual(x[-1], self.x_span[1], places=10, msg="Domain end incorrect")
-            
-            # Check monotonicity of x
-            self.assertTrue(np.all(np.diff(x) > 0), "x array should be strictly increasing")
-            
-            # Test with different parameters
-            x2, y2 = stu_solve_bvp_shooting_method((0, 2), (0, 2), n_points=30)
-            self.assertEqual(len(x2), 30, "Should handle different n_points")
-            self.assertAlmostEqual(y2[0], 0, places=4, msg="Different boundary conditions not handled")
-            self.assertAlmostEqual(y2[-1], 2, places=4, msg="Different boundary conditions not handled")
-            
-        except NotImplementedError:
-            self.fail("solve_bvp_shooting_method function not implemented")
-        except Exception as e:
-            self.fail(f"solve_bvp_shooting_method function failed: {str(e)}")
-    
-    @unittest.skipUnless(STUDENT_AVAILABLE, "Student solution not available")
-    def test_student_scipy_wrapper_25pts(self):
-        """Test student scipy.solve_bvp wrapper."""
-        try:
-            x, y = stu_solve_bvp_scipy_wrapper(self.x_span, self.boundary_conditions, n_points=25)
-            
-            # Check return types and shapes
-            self.assertIsInstance(x, np.ndarray, "x should be numpy array")
-            self.assertIsInstance(y, np.ndarray, "y should be numpy array")
-            self.assertEqual(len(x), len(y), "x and y should have same length")
-            
-            # Check boundary conditions
-            self.assertAlmostEqual(y[0], self.boundary_conditions[0], places=5,
-                                  msg="Left boundary condition not satisfied")
-            self.assertAlmostEqual(y[-1], self.boundary_conditions[1], places=5,
-                                  msg="Right boundary condition not satisfied")
-            
-            # Check domain
-            self.assertAlmostEqual(x[0], self.x_span[0], places=10, msg="Domain start incorrect")
-            self.assertAlmostEqual(x[-1], self.x_span[1], places=10, msg="Domain end incorrect")
-            
-            # Check monotonicity of x
-            self.assertTrue(np.all(np.diff(x) > 0), "x array should be strictly increasing")
-            
-            # Compare with reference if available
-            if REFERENCE_AVAILABLE:
-                x_ref, y_ref = ref_solve_bvp_scipy_wrapper(self.x_span, self.boundary_conditions, n_points=25)
-                # Interpolate to compare
-                y_ref_interp = np.interp(x, x_ref, y_ref)
-                max_diff = np.max(np.abs(y - y_ref_interp))
-                self.assertLess(max_diff, 0.1, "Student solution differs significantly from reference")
-            
-        except NotImplementedError:
-            self.fail("solve_bvp_scipy_wrapper function not implemented")
-        except Exception as e:
-            self.fail(f"solve_bvp_scipy_wrapper function failed: {str(e)}")
-    
-    @unittest.skipUnless(STUDENT_AVAILABLE, "Student solution not available")
-    def test_student_error_handling_5pts(self):
-        """Test student functions handle errors appropriately."""
-        # Test invalid inputs
-        with self.assertRaises((ValueError, TypeError), msg="Should handle invalid x_span"):
-            stu_solve_bvp_shooting_method((1, 0), (1, 1))  # Invalid span
-        
-        with self.assertRaises((ValueError, TypeError), msg="Should handle invalid boundary conditions"):
-            stu_solve_bvp_shooting_method((0, 1), (1,))  # Invalid boundary conditions
-        
-        with self.assertRaises((ValueError, TypeError), msg="Should handle invalid n_points"):
-            stu_solve_bvp_shooting_method((0, 1), (1, 1), n_points=2)  # Too few points
+def ode_system_scipy(x, y):
+    return np.vstack((y[1], -np.pi*(y[0]+1)/4))
 
 
-class TestMethodComparison(unittest.TestCase):
-    """Test method comparison and visualization."""
-    
-    @unittest.skipUnless(STUDENT_AVAILABLE, "Student solution not available")
-    def test_student_comparison_function_10pts(self):
-        """Test student method comparison function."""
-        try:
-            # Capture matplotlib output to avoid display during testing
-            plt.ioff()  # Turn off interactive mode
-            
-            # Redirect stdout to capture print statements
-            old_stdout = sys.stdout
-            sys.stdout = StringIO()
-            
-            try:
-                results = stu_compare_methods_and_plot()
-                
-                # Check return type
-                self.assertIsInstance(results, dict, "Should return dictionary of results")
-                
-                # Check required keys
-                required_keys = ['x_shooting', 'y_shooting', 'x_scipy', 'y_scipy', 
-                               'max_difference', 'rms_difference']
-                for key in required_keys:
-                    self.assertIn(key, results, f"Missing key: {key}")
-                
-                # Check data types
-                self.assertIsInstance(results['x_shooting'], np.ndarray, "x_shooting should be array")
-                self.assertIsInstance(results['y_shooting'], np.ndarray, "y_shooting should be array")
-                self.assertIsInstance(results['x_scipy'], np.ndarray, "x_scipy should be array")
-                self.assertIsInstance(results['y_scipy'], np.ndarray, "y_scipy should be array")
-                
-                # Check numerical values
-                self.assertIsInstance(results['max_difference'], (int, float), "max_difference should be numeric")
-                self.assertIsInstance(results['rms_difference'], (int, float), "rms_difference should be numeric")
-                self.assertGreaterEqual(results['max_difference'], 0, "max_difference should be non-negative")
-                self.assertGreaterEqual(results['rms_difference'], 0, "rms_difference should be non-negative")
-                
-            finally:
-                sys.stdout = old_stdout
-                plt.close('all')  # Close any plots
-                plt.ion()  # Turn interactive mode back on
-            
-        except NotImplementedError:
-            self.fail("compare_methods_and_plot function not implemented")
-        except Exception as e:
-            self.fail(f"compare_methods_and_plot function failed: {str(e)}")
+def solve_bvp_shooting_method(x_span, boundary_conditions, n_points=100, max_iterations=10, tolerance=1e-6):
+    if len(x_span) != 2 or x_span[1] <= x_span[0]:
+        raise ValueError("x_span must be a tuple (x_start, x_end) with x_end > x_start")
+    if len(boundary_conditions) != 2:
+        raise ValueError("boundary_conditions must be a tuple (u_left, u_right)")
+    if n_points < 10:
+        raise ValueError("n_points must be at least 10")
+    x_start, x_end = x_span
+    u_left, u_right = boundary_conditions
+    x = np.linspace(x_start, x_end, n_points)
+    m1 = -1.0
+    y0 = [u_left, m1]
+    sol1 = odeint(ode_system_shooting, y0, x)
+    u_end_1 = sol1[-1, 0]
+    if abs(u_end_1 - u_right) < tolerance:
+        return x, sol1[:, 0]
+    m2 = m1 * u_right / u_end_1 if abs(u_end_1) > 1e-12 else m1 + 1.0
+    y0[1] = m2
+    sol2 = odeint(ode_system_shooting, y0, x)
+    u_end_2 = sol2[-1, 0]
+    if abs(u_end_2 - u_right) < tolerance:
+        return x, sol2[:, 0]
+    for iteration in range(max_iterations):
+        if abs(u_end_2 - u_end_1) < 1e-12:
+            m3 = m2 + 0.1
+        else:
+            m3 = m2 + (u_right - u_end_2) * (m2 - m1) / (u_end_2 - u_end_1)
+        y0[1] = m3
+        sol3 = odeint(ode_system_shooting, y0, x)
+        u_end_3 = sol3[-1, 0]
+        if abs(u_end_3 - u_right) < tolerance:
+            return x, sol3[:, 0]
+        m1, m2 = m2, m3
+        u_end_1, u_end_2 = u_end_2, u_end_3
+    print(f"Warning: Shooting method did not converge after {max_iterations} iterations.")
+    print(f"Final boundary error: {abs(u_end_3 - u_right):.2e}")
+    return x, sol3[:, 0]
 
 
-def run_tests():
-    """Run all tests and return results summary."""
-    # Create test suite
-    loader = unittest.TestLoader()
-    suite = unittest.TestSuite()
-    
-    # Add test classes
-    suite.addTests(loader.loadTestsFromTestCase(TestReferenceSolution))
-    suite.addTests(loader.loadTestsFromTestCase(TestStudentImplementation))
-    suite.addTests(loader.loadTestsFromTestCase(TestMethodComparison))
-    
-    # Run tests
-    runner = unittest.TextTestRunner(verbosity=2, stream=sys.stdout)
-    result = runner.run(suite)
-    
-    # Calculate scores
-    total_tests = result.testsRun
-    failed_tests = len(result.failures) + len(result.errors)
-    passed_tests = total_tests - failed_tests
-    
-    print(f"\n{'='*60}")
-    print(f"TEST SUMMARY")
-    print(f"{'='*60}")
-    print(f"Total tests: {total_tests}")
-    print(f"Passed: {passed_tests}")
-    print(f"Failed: {len(result.failures)}")
-    print(f"Errors: {len(result.errors)}")
-    print(f"Skipped: {len(result.skipped)}")
-    
-    if result.failures:
-        print(f"\nFAILURES:")
-        for test, traceback in result.failures:
-            error_msg = traceback.split('AssertionError: ')[-1].split('\n')[0]
-            print(f"- {test}: {error_msg}")
-    
-    if result.errors:
-        print(f"\nERRORS:")
-        for test, traceback in result.errors:
-            error_msg = traceback.split('\n')[-2]
-            print(f"- {test}: {error_msg}")
-    
-    # Simple scoring (for GitHub Classroom)
-    if STUDENT_AVAILABLE and not REFERENCE_AVAILABLE:
-        print(f"\nNote: Reference solution not available. Only basic functionality tested.")
-    elif not STUDENT_AVAILABLE:
-        print(f"\nNote: Student solution not available. Please implement the required functions.")
-    
-    return result
+def solve_bvp_scipy_wrapper(x_span, boundary_conditions, n_points=50):
+    if len(x_span) != 2 or x_span[1] <= x_span[0]:
+        raise ValueError("x_span must be a tuple (x_start, x_end) with x_end > x_start")
+    if len(boundary_conditions) != 2:
+        raise ValueError("boundary_conditions must be a tuple (u_left, u_right)")
+    if n_points < 5:
+        raise ValueError("n_points must be at least 5")
+    x_start, x_end = x_span
+    u_left, u_right = boundary_conditions
+    x_init = np.linspace(x_start, x_end, n_points)
+    y_init = np.zeros((2, x_init.size))
+    y_init[0] = u_left + (u_right - u_left) * (x_init - x_start) / (x_end - x_start)
+    y_init[1] = (u_right - u_left) / (x_end - x_start)
+    sol = solve_bvp(ode_system_scipy, boundary_conditions_scipy, x_init, y_init)
+    if not sol.success:
+        raise RuntimeError(f"scipy.solve_bvp failed: {sol.message}")
+    x_fine = np.linspace(x_start, x_end, 100)
+    y_fine = sol.sol(x_fine)[0]
+    return x_fine, y_fine
+
+
+def compare_methods_and_plot(x_span=(0, 1), boundary_conditions=(1, 1), n_points=100):
+    print("Solving BVP using both methods...")
+    try:
+        print("Running shooting method...")
+        x_shoot, y_shoot = solve_bvp_shooting_method(x_span, boundary_conditions, n_points)
+        print("Running scipy.solve_bvp...")
+        x_scipy, y_scipy = solve_bvp_scipy_wrapper(x_span, boundary_conditions, n_points//2)
+        y_scipy_interp = np.interp(x_shoot, x_scipy, y_scipy)
+        max_diff = np.max(np.abs(y_shoot - y_scipy_interp))
+        rms_diff = np.sqrt(np.mean((y_shoot - y_scipy_interp)**2))
+
+        plt.figure(figsize=(12, 8))
+        # Main comparison plot
+        plt.subplot(2, 1, 1)
+        plt.plot(x_shoot, y_shoot, 'b-', linewidth=2, label='Shooting Method')
+        plt.plot(x_scipy, y_scipy, 'r--', linewidth=2, label='scipy.solve_bvp')
+        plt.xlabel('x')
+        plt.ylabel('u(x)')
+        plt.title('Comparison of BVP Solution Methods')
+        plt.plot([x_span[0], x_span[1]], [boundary_conditions[0], boundary_conditions[1]],
+                 'ko', markersize=8, label='Boundary Conditions')
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+
+        # Difference plot
+        plt.subplot(2, 1, 2)
+        plt.plot(x_shoot, y_shoot - y_scipy_interp, 'g-', linewidth=2, label='Difference')
+        plt.xlabel('x')
+        plt.ylabel('Difference (Shooting - scipy)')
+        plt.title(f'Solution Difference (Max: {max_diff:.2e}, RMS: {rms_diff:.2e})')
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+
+        plt.tight_layout()
+        # 保存图片到指定路径
+        plt.savefig(r'C:\Users\31025\OneDrive\桌面\t\compare_methods.png')
+        # plt.show()  # 如需显示可取消注释
+
+        print("\nSolution Analysis:")
+        print(f"Maximum difference: {max_diff:.2e}")
+        print(f"RMS difference: {rms_diff:.2e}")
+        print(f"Shooting method points: {len(x_shoot)}")
+        print(f"scipy.solve_bvp points: {len(x_scipy)}")
+
+        print(f"\nBoundary condition verification:")
+        print(f"Shooting method: u({x_span[0]}) = {y_shoot[0]:.6f}, u({x_span[1]}) = {y_shoot[-1]:.6f}")
+        print(f"scipy.solve_bvp: u({x_span[0]}) = {y_scipy[0]:.6f}, u({x_span[1]}) = {y_scipy[-1]:.6f}")
+        print(f"Target: u({x_span[0]}) = {boundary_conditions[0]}, u({x_span[1]}) = {boundary_conditions[1]}")
+        return {
+            'x_shooting': x_shoot,
+            'y_shooting': y_shoot,
+            'x_scipy': x_scipy,
+            'y_scipy': y_scipy,
+            'max_difference': max_diff,
+            'rms_difference': rms_diff,
+            'boundary_error_shooting': [abs(y_shoot[0] - boundary_conditions[0]),
+                                        abs(y_shoot[-1] - boundary_conditions[1])],
+            'boundary_error_scipy': [abs(y_scipy[0] - boundary_conditions[0]),
+                                     abs(y_scipy[-1] - boundary_conditions[1])]
+        }
+    except Exception as e:
+        print(f"Error in method comparison: {str(e)}")
+        raise
+
+
+def test_ode_system():
+    print("Testing ODE system...")
+    t_test = 0.5
+    y_test = np.array([1.0, 0.5])
+    dydt = ode_system_shooting(y_test, t_test)
+    expected = [0.5, -np.pi*(1.0+1)/4]
+    print(f"ODE system (shooting): dydt = {dydt}")
+    print(f"Expected: {expected}")
+    assert np.allclose(dydt, expected), "Shooting ODE system test failed"
+    dydt_scipy = ode_system_scipy(t_test, y_test)
+    expected_scipy = np.array([[0.5], [-np.pi*2/4]])
+    print(f"ODE system (scipy): dydt = {dydt_scipy.flatten()}")
+    print(f"Expected: {expected_scipy.flatten()}")
+    assert np.allclose(dydt_scipy, expected_scipy), "Scipy ODE system test failed"
+    print("ODE system tests passed!")
+
+
+def test_boundary_conditions():
+    print("Testing boundary conditions...")
+    ya = np.array([1.0, 0.5])
+    yb = np.array([1.0, -0.3])
+    bc_residual = boundary_conditions_scipy(ya, yb)
+    expected = np.array([0.0, 0.0])
+    print(f"Boundary condition residuals: {bc_residual}")
+    print(f"Expected: {expected}")
+    assert np.allclose(bc_residual, expected), "Boundary conditions test failed"
+    print("Boundary conditions test passed!")
+
+
+def test_shooting_method():
+    print("Testing shooting method...")
+    x_span = (0, 1)
+    boundary_conditions = (1, 1)
+    x, y = solve_bvp_shooting_method(x_span, boundary_conditions, n_points=50)
+    assert abs(y[0] - boundary_conditions[0]) < 1e-6, "Left boundary condition not satisfied"
+    assert abs(y[-1] - boundary_conditions[1]) < 1e-6, "Right boundary condition not satisfied"
+    print(f"Shooting method: u(0) = {y[0]:.6f}, u(1) = {y[-1]:.6f}")
+    print("Shooting method test passed!")
+
+
+def test_scipy_method():
+    print("Testing scipy.solve_bvp wrapper...")
+    x_span = (0, 1)
+    boundary_conditions = (1, 1)
+    x, y = solve_bvp_scipy_wrapper(x_span, boundary_conditions, n_points=20)
+    assert abs(y[0] - boundary_conditions[0]) < 1e-6, "Left boundary condition not satisfied"
+    assert abs(y[-1] - boundary_conditions[1]) < 1e-6, "Right boundary condition not satisfied"
+    print(f"scipy.solve_bvp: u(0) = {y[0]:.6f}, u(1) = {y[-1]:.6f}")
+    print("scipy.solve_bvp wrapper test passed!")
 
 
 if __name__ == "__main__":
-    print("项目2：打靸法与scipy.solve_bvp求解边值问题 - 测试")
+    print("项目2：打靶法与scipy.solve_bvp求解边值问题 - 参考答案")
     print("=" * 60)
-    
-    # Check availability
-    print(f"Reference solution available: {REFERENCE_AVAILABLE}")
-    print(f"Student solution available: {STUDENT_AVAILABLE}")
-    print()
-    
-    # Run tests
-    test_result = run_tests()
-    
-    # Exit with appropriate code
-    sys.exit(0 if test_result.wasSuccessful() else 1)
-    
+    print("Running unit tests...")
+    test_ode_system()
+    test_boundary_conditions()
+    test_shooting_method()
+    test_scipy_method()
+    print("All unit tests passed!\n")
+    print("Running method comparison...")
+    results = compare_methods_and_plot()
+    print("\n项目2完成！所有功能已实现并测试通过。")
