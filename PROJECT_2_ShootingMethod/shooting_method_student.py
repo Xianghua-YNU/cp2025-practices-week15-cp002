@@ -233,4 +233,37 @@ def test_shooting_method():
     x_span = (0, 1)
     boundary_conditions = (1, 1)
     x, y = solve_bvp_shooting_method(x_span, boundary_conditions, n_points=50)
-    assert abs(y[0] - boundary_conditions[0]) < 1e-
+    assert abs(y[0] - boundary_conditions[0]) < 1e-6, "Left boundary condition not satisfied"
+    assert abs(y[-1] - boundary_conditions[1]) < 1e-6, "Right boundary condition not satisfied"
+    print(f"Shooting method: u(0) = {y[0]:.6f}, u(1) = {y[-1]:.6f}")
+    print("Shooting method test passed!")
+
+
+def test_scipy_method():
+    """
+    Test the scipy.solve_bvp wrapper.
+    """
+    print("Testing scipy.solve_bvp wrapper...")
+    x_span = (0, 1)
+    boundary_conditions = (1, 1)
+    x, y = solve_bvp_scipy_wrapper(x_span, boundary_conditions, n_points=20)
+    assert abs(y[0] - boundary_conditions[0]) < 1e-6, "Left boundary condition not satisfied"
+    assert abs(y[-1] - boundary_conditions[1]) < 1e-6, "Right boundary condition not satisfied"
+    print(f"scipy.solve_bvp: u(0) = {y[0]:.6f}, u(1) = {y[-1]:.6f}")
+    print("scipy.solve_bvp wrapper test passed!")
+
+
+if __name__ == "__main__":
+    print("项目2：打靶法与scipy.solve_bvp求解边值问题 - 参考答案")
+    print("=" * 60)
+    # Run all tests
+    print("Running unit tests...")
+    test_ode_system()
+    test_boundary_conditions()
+    test_shooting_method()
+    test_scipy_method()
+    print("All unit tests passed!\n")
+    # Run method comparison
+    print("Running method comparison...")
+    results = compare_methods_and_plot()
+    print("\n项目2完成！所有功能已实现并测试通过。")
