@@ -1,9 +1,3 @@
-"""
-模块：双摆模拟解决方案
-作者：由 Trae Assistant 生成
-说明：完整的双摆动力学模拟、能量计算及动画展示解决方案。
-"""
-
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import odeint
