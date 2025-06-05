@@ -1,3 +1,6 @@
+import matplotlib.pyplot as plt
+plt.rcParams['font.sans-serif'] = ['SimHei']  # 设置中文字体为黑体
+plt.rcParams['axes.unicode_minus'] = False    # 解决负号 '-' 显示为方块的问题
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import odeint
@@ -221,24 +224,6 @@ if __name__ == "__main__":
              initial_energy + 5*energy_variation if energy_variation > 1e-7 else initial_energy + 1e-5)
     plt.show()
 
-    # 4. （可选）动画展示
-    # 设置为 True 则运行动画，False 则跳过（动画可能较慢）
-    run_animation = True 
-    if run_animation:
-        print("生成动画中... 这可能需要一点时间。")
-        # 动画时通常使用较少的帧数以保证流畅播放
-        anim_object = animate_double_pendulum(t_solution, sol_solution, L_param=L_CONST, skip_frames=max(1, t_points_sim // 1000) * 5) 
-        
-        # 若需保存动画，需安装 ffmpeg 或其他支持的写入器
-        # 示例：anim_object.save('double_pendulum.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
-        # print("动画已保存为 double_pendulum.mp4（需有写入器支持）")
-        
-        plt.show()  # 显示动画窗口
-        print("动画展示完成。")
-    else:
-        print("跳过动画。")
-
-    print("双摆模拟结束。")
 
 """
 关于能量守恒与 odeint 参数说明：
